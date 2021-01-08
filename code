@@ -1,0 +1,191 @@
+Sub wallstreet():
+
+Dim ws As Worksheet
+
+For Each ws In Sheets
+    ws.Activate
+
+
+'Place bold headers on new columns with thick bottom border
+Range("I1").Value = "Ticker"
+Range("I1").Font.Bold = True
+Range("J1").Value = "Yearly Change"
+Range("J1").Font.Bold = True
+Range("K1").Value = "Percent Change"
+Range("K1").Font.Bold = True
+Range("L1").Value = "Total Stock Volume"
+Range("L1").Font.Bold = True
+
+With ws.Range("I1:L1").Borders(xlEdgeBottom)
+.LineStyle = xlContinuous
+.Weight = xlThick
+End With
+
+'Determine lastrow for row count
+lastrow = Cells(Rows.Count, 1).End(xlUp).Row
+
+'Beginning sums
+RowCount = 2
+YearlyChange = 2
+volume = 0
+
+
+For I = 2 To lastrow
+
+    'Grab opening amount for each ticker
+    If Cells(I, 1).Value <> Cells(I - 1, 1).Value Then
+ 
+        opening = Cells(I, 3).Value
+    
+    End If
+    
+
+    If Cells(I, 1).Value = Cells(I + 1, 1).Value Then
+ 
+        'Gather volume data for sumpmary table
+        volume = Cells(I, 7).Value + volume
+
+        ElseIf Cells(I, 1).Value <> Cells(I + 1, 1).Value Then
+            
+            'Stop gathering volume data for summary table
+            volume = Cells(I, 7).Value + volume
+            
+            'Grab last closing amount for each ticker
+            closing = Cells(I, 6).Value
+    
+            'Print tickers in summary table
+            Cells(RowCount, 9).Value = Cells(I, 1).Value
+            
+            'Print volume for each ticker in summary table
+            Cells(RowCount, 12) = volume
+            
+            'Print yearly change for each ticker in summary table
+            YearlyChange = closing - opening
+            Cells(RowCount, 10).Value = YearlyChange
+            
+            'Conditional Formatting
+            If Cells(RowCount, 10).Value >= 0 Then
+                Cells(RowCount, 10).Interior.ColorIndex = 4
+                
+            Else
+                Cells(RowCount, 10).Interior.ColorIndex = 3
+            
+            End If
+            
+            'Print percent change in summary table
+            If opening <> 0 Then
+            
+            Cells(RowCount, 11).Value = YearlyChange / opening
+            Cells(RowCount, 11).NumberFormat = "0.00%"
+            
+            Else
+            opening = "n/a"
+            
+            End If
+            
+            'Reset all values
+            volume = 0
+            RowCount = RowCount + 1
+            opening = 0
+            closing = 0
+            
+        
+    
+    End If
+
+Next I
+
+'Bonus Performance table
+
+'Place bold titles with borders and shading
+Range("O2").Value = "Greatest % Increase"
+Range("O2").Font.Bold = True
+Range("O3").Value = "Greatest % Decrease"
+Range("O3").Font.Bold = True
+Range("O4").Value = "Greatest Total Volume"
+Range("O4").Font.Bold = True
+Range("P1").Value = "Ticker"
+Range("P1").Font.Bold = True
+Range("Q1").Value = "Value"
+Range("Q1").Font.Bold = True
+
+With ws.Range("O1:Q1").Borders(xlEdgeBottom)
+.LineStyle = xlContinuous
+.Weight = xlThick
+End With
+
+With ws.Range("O1:O4").Borders(xlEdgeRight)
+.LineStyle = xlContinuous
+.Weight = xlThick
+End With
+
+Range("O1:Q1").Interior.ColorIndex = 15
+Range("O1:O4").Interior.ColorIndex = 15
+
+'Determine lastrow for row count
+lastrow = Cells(Rows.Count, 9).End(xlUp).Row
+
+'Set values to first line in summary table
+GreatestPercentValue = Cells(2, 11).Value
+SmallestPercentValue = Cells(2, 11).Value
+GreatestVolume = Cells(2, 12).Value
+
+'Loop to search through summary table
+For j = 2 To lastrow
+
+    If Cells(j, 11).Value > GreatestPercentValue Then
+    
+        GreatestPercentValue = Cells(j, 11).Value
+        GreatestPercentTicker = Cells(j, 9).Value
+        
+    End If
+    
+    If Cells(j, 11).Value < SmallestPercentValue Then
+    
+        SmallestPercentValue = Cells(j, 11).Value
+        SmallestPercentTicker = Cells(j, 9).Value
+        
+    End If
+    
+    If Cells(j, 12).Value > GreatestVolume Then
+    
+        GreatestVolume = Cells(j, 12).Value
+        GreatestVolumeTicker = Cells(j, 9).Value
+        
+    End If
+    
+Next j
+
+
+'Move values to performance table
+Range("P2").Value = GreatestPercentTicker
+Range("Q2").Value = GreatestPercentValue
+Range("Q2").NumberFormat = "0.00%"
+
+Range("P3").Value = SmallestPercentTicker
+Range("Q3").Value = SmallestPercentValue
+Range("Q3").NumberFormat = "0.00%"
+
+Range("P4").Value = GreatestVolumeTicker
+Range("Q4").Value = GreatestVolume
+
+Cells.EntireColumn.AutoFit
+
+Next ws
+
+End Sub
+
+
+Sub Clear():
+
+Dim ws As Worksheet
+
+For Each ws In Sheets
+    ws.Activate
+    
+    Range("I:Q").EntireColumn.Delete
+
+Next ws
+
+End Sub
+
